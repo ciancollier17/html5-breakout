@@ -1,6 +1,7 @@
 const canvas = document.getElementById('breakout');
 const context = canvas.getContext('2d');
 let paused = true;
+let score = 0;
 
 class Bat {
   constructor (canvas, context) {
@@ -84,11 +85,15 @@ class Ball {
     }
 
     for (let r = 0; r < this.bricks.length; r++) {
-      if (this.pos_x >= this.bricks[r].pos_x && this.pos_x <= this.bricks[r].pos_x + (this.canvas.width / 40)) {
-        if (this.pos_y >= this.bricks[r].pos_y && this.pos_y <= this.bricks[r].pos_y + (this.canvas.width / 100)) {
-          // Remove Brick from Bricks Array
-          this.bricks.splice(r, 1);
-        }
+      let centre_brick_x = this.bricks[r].pos_x + (this.canvas.width / 80);
+      let centre_brick_y = this.bricks[r].pos_y + (this.canvas.width / 200);
+
+      if (Math.abs(this.pos_x - centre_brick_x) <= ((this.canvas.width / 120) + (centre_brick_x - this.bricks[r].pos_x)) && Math.abs(this.pos_y - centre_brick_y) <= ((this.canvas.width / 120) + ((this.canvas.width / 100) + (centre_brick_y - this.bricks[r].pos_y)))) {
+        // Remove Brick from Bricks Array
+        this.bricks.splice(r, 1);
+        score++;
+
+        this.move_y = -this.move_y;
       }
     }
 
@@ -149,6 +154,9 @@ function gameLoop () {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = 'black';
     context.fillRect(0, 0, canvas.width, canvas.height);
+    context.font = "2rem Monospace";
+    context.fillStyle = 'white';
+    context.fillText("Score: " + score, canvas.width - 200, canvas.height - 35);
 
     bat.render();
     ball.render();
