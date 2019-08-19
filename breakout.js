@@ -76,11 +76,26 @@ class Ball {
   }
 
   render () {
-    if (this.pos_x <= 0 || this.pos_x >= this.canvas.width) {
+    if ((this.pos_x - (this.canvas.width / 120)) <= 0 || (this.pos_x + (this.canvas.width / 120)) >= this.canvas.width) {
       this.move_x = -this.move_x;
-    } else if (this.pos_y <= 0) {
+    } else if ((this.pos_y - (this.canvas.width / 120)) <= 0) {
       this.move_y = -this.move_y;
-    } else if (this.pos_x >= this.bat.pos_x && this.pos_x <= (this.bat.pos_x + this.bat.width) && this.pos_y >= this.bat.pos_y && this.pos_y <= (this.bat.pos_y + this.bat.height)) {
+    } // else if (this.pos_x >= this.bat.pos_x && this.pos_x <= (this.bat.pos_x + this.bat.width) && this.pos_y >= this.bat.pos_y && this.pos_y <= (this.bat.pos_y + this.bat.height)) {
+
+    let centre_bat_x = this.bat.pos_x + (this.bat.width / 2);
+    let centre_bat_y = this.bat.pos_y + (this.bat.height / 2);
+
+    if (Math.abs(this.pos_x - centre_bat_x) <= ((this.canvas.width / 120) + (centre_bat_x - this.bat.pos_x)) && Math.abs(this.pos_y - centre_bat_y) <= ((this.canvas.width / 120) + (centre_bat_y - this.bat.pos_y))) {
+      if (this.pos_x <= (this.bat.pos_x + (this.bat.width / 4))) {
+        if (this.move_x > 0) {
+          this.move_x = -this.move_x;
+        }
+      } else if (this.pos_x >= (this.bat.pos_x + (this.bat.width / 4 * 3))) {
+        if (this.move_x < 0) {
+          this.move_x = -this.move_x;
+        }
+      }
+
       this.move_y = -this.move_y;
     }
 
@@ -88,12 +103,22 @@ class Ball {
       let centre_brick_x = this.bricks[r].pos_x + (this.canvas.width / 80);
       let centre_brick_y = this.bricks[r].pos_y + (this.canvas.width / 200);
 
-      if (Math.abs(this.pos_x - centre_brick_x) <= ((this.canvas.width / 120) + (centre_brick_x - this.bricks[r].pos_x)) && Math.abs(this.pos_y - centre_brick_y) <= ((this.canvas.width / 120) + ((this.canvas.width / 100) + (centre_brick_y - this.bricks[r].pos_y)))) {
+      if (Math.abs(this.pos_x - centre_brick_x) <= ((this.canvas.width / 120) + (centre_brick_x - this.bricks[r].pos_x)) && Math.abs(this.pos_y - centre_brick_y) <= ((this.canvas.width / 120) + (centre_brick_y - this.bricks[r].pos_y))) {
         // Remove Brick from Bricks Array
         this.bricks.splice(r, 1);
         score++;
 
-        this.move_y = -this.move_y;
+        if ((this.pos_x + (this.canvas.width / 120)) <= this.bricks[r].pos_x || (this.pos_x - (this.canvas.width / 120)) >= (this.bricks[r].pos_x + (this.canvas.width / 40))) {
+          if (this.pos_y >= this.bricks[r].pos_y && this.pos_y <= (this.bricks[r].pos_y + (this.canvas.width / 100))) {
+            this.move_x = -this.move_x;
+          } else {
+            this.move_y = -this.move_y;
+          }
+        } else {
+          this.move_y = -this.move_y;
+        }
+
+        break;
       }
     }
 
