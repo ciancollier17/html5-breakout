@@ -2,6 +2,15 @@ const canvas = document.getElementById('breakout');
 const context = canvas.getContext('2d');
 let paused = true;
 let score = 0;
+let lives = 3;
+
+//get DPI
+let dpi = window.devicePixelRatio;
+
+let style_height = +getComputedStyle(canvas).getPropertyValue("height").slice(0, -2);//get CSS width
+let style_width = +getComputedStyle(canvas).getPropertyValue("width").slice(0, -2);//scale the canvas
+canvas.setAttribute('height', style_height * dpi);
+canvas.setAttribute('width', style_width * dpi);
 
 class Bat {
   constructor (canvas, context) {
@@ -29,7 +38,7 @@ class Bat {
   render () {
     if (!this.pos_x && !this.pos_y) {
       this.pos_x = (this.canvas.width / 2) - (this.width / 2);
-      this.pos_y = this.canvas.height - (this.height + 20);
+      this.pos_y = this.canvas.height - (this.height + (this.canvas.width / 40) + 40);
     } else {
       if ((this.move < 0 && this.pos_x > 0) || (this.move > 0 && this.pos_x < (this.canvas.width - this.width))) {
         this.pos_x = this.pos_x + this.move;
@@ -80,7 +89,12 @@ class Ball {
       this.move_x = -this.move_x;
     } else if ((this.pos_y - (this.canvas.width / 120)) <= 0) {
       this.move_y = -this.move_y;
-    } // else if (this.pos_x >= this.bat.pos_x && this.pos_x <= (this.bat.pos_x + this.bat.width) && this.pos_y >= this.bat.pos_y && this.pos_y <= (this.bat.pos_y + this.bat.height)) {
+    } else if ((this.pos_y + (this.canvas.width / 120)) >= this.canvas.height) {
+      lives--;
+      this.pos_x = (this.canvas.width / 2) + (this.canvas.width / 120);
+      this.pos_y = (this.canvas.height / 2) + (this.canvas.width / 120);
+      paused = true;
+    }
 
     let centre_bat_x = this.bat.pos_x + (this.bat.width / 2);
     let centre_bat_y = this.bat.pos_y + (this.bat.height / 2);
@@ -118,6 +132,7 @@ class Ball {
           this.move_y = -this.move_y;
         }
 
+        // Don't want to interact with more than one brick in the same render as this resulted in strange bounce behaviour
         break;
       }
     }
@@ -179,9 +194,10 @@ function gameLoop () {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = 'black';
     context.fillRect(0, 0, canvas.width, canvas.height);
-    context.font = "2rem Monospace";
+    context.font = `${canvas.width / 40}px Arial`;
     context.fillStyle = 'white';
-    context.fillText("Score: " + score, canvas.width - 200, canvas.height - 35);
+    context.fillText(`Score: ${score}`, (canvas.width / 240 * 198), canvas.height - (canvas.width / 40));
+    context.fillText(`Lives: ${lives}`, 0, canvas.height - (canvas.width / 40));
 
     bat.render();
     ball.render();
