@@ -1,8 +1,9 @@
 const canvas = document.getElementById('breakout');
 const context = canvas.getContext('2d');
 let paused = true;
-let score = 0;
-let lives = 3;
+let score = null;
+let lives = null;
+let bat, ball, bricks = null;
 
 //get DPI
 let dpi = window.devicePixelRatio;
@@ -147,7 +148,37 @@ class Ball {
   }
 }
 
-let bat = new Bat(canvas, context);
+const setup_game = () => {
+  bat = new Bat(canvas, context);
+  bricks = [];
+  score = 0;
+  lives = 3;
+
+  let column = 1;
+
+  for (let i = 1; i <= 300; i++) {
+    if (column == 31) {
+      column = 1;
+    }
+
+    let row = Math.ceil(i / 30);
+    brick_x_pos = column * (canvas.width / 40) + ((column - 1) * (canvas.width / 4) / 29);
+    brick_y_pos = row * (canvas.width / 100) + (row - 1) * (canvas.width / 200);
+    bricks.push(new Brick(canvas, context, brick_x_pos, brick_y_pos));
+
+    column++;
+  }
+
+  ball = new Ball(canvas, context, bat, bricks);
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'black';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  bat.render();
+  ball.render();
+}
+
+/* let bat = new Bat(canvas, context);
 let bricks = [];
 let column = 1;
 
@@ -170,7 +201,8 @@ context.clearRect(0, 0, canvas.width, canvas.height);
 context.fillStyle = 'black';
 context.fillRect(0, 0, canvas.width, canvas.height);
 bat.render();
-ball.render();
+ball.render(); */
+setup_game();
 
 window.addEventListener('keydown', (e) => {
   if (e.key == "ArrowRight") {
@@ -178,8 +210,12 @@ window.addEventListener('keydown', (e) => {
   } else if (e.key == "ArrowLeft") {
     bat.moveLeft();
   } else if (e.key == " ") {
-    paused = !paused;
-    ball.startMoving();
+    if (lives > 0) {
+      paused = !paused;
+      ball.startMoving();
+    } else {
+      setup_game();
+    }
   }
 });
 
@@ -189,22 +225,45 @@ window.addEventListener('keyup', (e) => {
   }
 });
 
+function clearScreen() {
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'black';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+}
+
 function gameLoop () {
   if (!paused) {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = 'black';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.font = `${canvas.width / 40}px Arial`;
-    context.fillStyle = 'white';
-    context.fillText(`Score: ${score}`, (canvas.width / 240 * 198), canvas.height - (canvas.width / 40));
-    context.fillText(`Lives: ${lives}`, 0, canvas.height - (canvas.width / 40));
+    clearScreen();
 
-    bat.render();
-    ball.render();
+    if (lives > 0) {
+      context.font = `${canvas.width / 40}px Arial`;
+      context.fillStyle = 'white';
+      context.fillText(`Score: ${score}`, (canvas.width / 240 * 198), canvas.height - (canvas.width / 40));
+      context.fillText(`Lives: ${lives}`, 0, canvas.height - (canvas.width / 40));
 
-    for (let k = 0; k < bricks.length; k++) {
-      bricks[k].render();
+      bat.render();
+      ball.render();
+
+      for (let k = 0; k < bricks.length; k++) {
+        bricks[k].render();
+      }
     }
+  }
+
+  if (lives <= 0) {
+    clearScreen();
+    
+    context.font = `${canvas.width / 15}px Arial`;
+    context.fillStyle = "white";
+    let {width} = context.measureText("Game Over!");
+
+    context.fillText("Game Over!", (canvas.width - width) / 2, canvas.height / 2);
+
+    context.font = `${canvas.width / 30}px Arial`;
+    let score_string = `Score: ${score}`;
+    width = context.measureText(score_string).width;
+
+    context.fillText(score_string, (canvas.width - width) / 2, (canvas.height / 2) + (canvas.width / 15));
   }
 }
 
